@@ -1,5 +1,6 @@
 <template>
   <div>
+    <p>DATE TIME: {{ cValue }}</p>
     <q-input
       class="full-width"
       hide-bottom-space

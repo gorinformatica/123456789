@@ -22,7 +22,7 @@
           v-if="$q.screen.gt.xs">
           <q-img src="/izing-logo_5_transparent.png"
             spinner-color="primary"
-            style="height: 50px; width: 140px" />
+            style="height: 50px; width: 120px" />
           <!-- <q-toolbar-title
             shrink
             class="text-bold text-grey-7"
@@ -41,60 +41,10 @@
             icon="notifications">
             <q-badge color="red"
               text-color="white"
-              floating
-              v-if="(parseInt(notifications.count) + parseInt(notifications_p.count)) > 0">
-              {{ parseInt(notifications.count) + parseInt(notifications_p.count) }}
+              floating>
+              2
             </q-badge>
-            <q-menu>
-              <q-list style="min-width: 300px">
-                <!--q-item>
-                  <q-item-section
-                    style="cursor: pointer;">
-                    {{ parseInt(notifications.count) }} + {{ parseInt(notifications_p.count) }}
-                  </q-item-section>
-                </q-item-->
-                <q-item v-if="(parseInt(notifications.count) + parseInt(notifications_p.count)) == 0">
-                  <q-item-section style="cursor: pointer;">
-                    Nada de novo por aqui!
-                  </q-item-section>
-                </q-item>
-                <q-item v-if="parseInt(notifications_p.count) > 0">
-                  <q-item-section avatar
-                    @click="() => $router.push({ name: 'atendimento' })"
-                    style="cursor: pointer;">
-                    <q-avatar style="width: 60px; height: 60px"
-                      color="blue"
-                      text-color="white">
-                      {{ notifications_p.count }}
-                    </q-avatar>
-                  </q-item-section>
-                  <q-item-section @click="() => $router.push({ name: 'atendimento' })"
-                    style="cursor: pointer;">
-                    Clientes pendentes na fila
-                  </q-item-section>
-                </q-item>
-                <q-item v-for="ticket in notifications.tickets"
-                  :key="ticket.id"
-                  style="border-bottom: 1px solid #ddd; margin: 5px;">
-                  <q-item-section avatar
-                    @click="abrirAtendimentoExistente(ticket.name, ticket)"
-                    style="cursor: pointer;">
-                    <q-avatar style="width: 60px; height: 60px">
-                      <img :src="ticket.profilePicUrl">
-                    </q-avatar>
-                  </q-item-section>
-                  <q-item-section @click="abrirAtendimentoExistente(ticket.name, ticket)"
-                    style="cursor: pointer;">
-                    <q-list>
-                      <q-item style="text-align:center; font-size: 17px; font-weight: bold; min-height: 0">{{ ticket.name
-                      }}</q-item>
-                      <q-item style="min-height: 0; padding-top: 0"><b>Mensagem: </b> {{ ticket.lastMessage }}</q-item>
-                    </q-list>
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-menu>
-            <q-tooltip>Notificações</q-tooltip>
+            <q-tooltip>Notificações (Em breve)</q-tooltip>
           </q-btn>
           <q-avatar :color="usuario.status === 'offline' ? 'negative' : 'positive'"
             text-color="white"
@@ -225,7 +175,6 @@
 </template>
 
 <script>
-// const userId = +localStorage.getItem('userId')
 import cSystemVersion from '../components/cSystemVersion.vue'
 import { ListarWhatsapps } from 'src/service/sessoesWhatsapp'
 import EssentialLink from 'components/EssentialLink.vue'
@@ -239,7 +188,6 @@ import { ListarConfiguracoes } from 'src/service/configuracoes'
 import { RealizarLogout } from 'src/service/login'
 import cStatusUsuario from '../components/cStatusUsuario.vue'
 import { socketIO } from 'src/utils/socket'
-import { ConsultarTickets } from 'src/service/tickets'
 
 const socket = socketIO()
 
@@ -331,15 +279,15 @@ const objMenuAdmin = [
     title: 'Campanha',
     caption: 'Campanhas de envio',
     icon: 'mdi-message-bookmark-outline',
-    routeName: 'campanhas'
-    // isBeta: true
+    routeName: 'campanhas',
+    isBeta: true
   },
   {
     title: 'API',
     caption: 'Integração sistemas externos',
     icon: 'mdi-call-split',
-    routeName: 'api-service'
-    // isBeta: true
+    routeName: 'api-service',
+    isBeta: true
   }
 ]
 
@@ -350,7 +298,7 @@ export default {
   data () {
     return {
       username,
-      domainExperimentalsMenus: ['@'],
+      domainExperimentalsMenus: ['@izing.io'],
       miniState: true,
       userProfile: 'user',
       modalUsuario: false,
@@ -358,13 +306,11 @@ export default {
       alertSound,
       leftDrawerOpen: false,
       menuData: objMenu,
-      menuDataAdmin: objMenuAdmin,
-      countTickets: 0,
-      ticketsList: []
+      menuDataAdmin: objMenuAdmin
     }
   },
   computed: {
-    ...mapGetters(['notifications', 'notifications_p', 'whatsapps']),
+    ...mapGetters(['whatsapps']),
     cProblemaConexao () {
       const idx = this.whatsapps.findIndex(w =>
         ['PAIRING', 'TIMEOUT', 'DISCONNECTED'].includes(w.status)
@@ -472,98 +418,12 @@ export default {
       if (this.usuario.status === 'online') {
         socket.emit(`${this.usuario.tenantId}:setUserActive`)
       }
-    },
-    async consultarTickets () {
-      const params = {
-        searchParam: '',
-        pageNumber: 1,
-        status: ['open'],
-        showAll: false,
-        count: null,
-        queuesIds: [],
-        withUnreadMessages: true,
-        isNotAssignedUser: false,
-        includeNotQueueDefined: true
-        // date: new Date(),
-      }
-      try {
-        const { data } = await ConsultarTickets(params)
-        this.countTickets = data.count // count total de tickets no status
-        // this.ticketsList = data.tickets
-        // console.log(data)
-        this.$store.commit('UPDATE_NOTIFICATIONS', data)
-        // this.$store.commit('SET_HAS_MORE', data.hasMore)
-        // console.log(this.notifications)
-      } catch (err) {
-        this.$notificarErro('Algum problema', err)
-        console.error(err)
-      }
-      const params2 = {
-        searchParam: '',
-        pageNumber: 1,
-        status: ['pending'],
-        showAll: false,
-        count: null,
-        queuesIds: [],
-        withUnreadMessages: false,
-        isNotAssignedUser: false,
-        includeNotQueueDefined: true
-        // date: new Date(),
-      }
-      try {
-        const { data } = await ConsultarTickets(params2)
-        this.countTickets = data.count // count total de tickets no status
-        // this.ticketsList = data.tickets
-        // console.log(data)
-        this.$store.commit('UPDATE_NOTIFICATIONS_P', data)
-        // this.$store.commit('SET_HAS_MORE', data.hasMore)
-        // console.log(this.notifications)
-      } catch (err) {
-        this.$notificarErro('Algum problema', err)
-        console.error(err)
-      }
-    },
-    abrirChatContato (ticket) {
-      // caso esteja em um tamanho mobile, fechar a drawer dos contatos
-      if (this.$q.screen.lt.md && ticket.status !== 'pending') {
-        this.$root.$emit('infor-cabecalo-chat:acao-menu')
-      }
-      if (!(ticket.status !== 'pending' && (ticket.id !== this.$store.getters.ticketFocado.id || this.$route.name !== 'chat'))) return
-      this.$store.commit('SET_HAS_MORE', true)
-      this.$store.dispatch('AbrirChatMensagens', ticket)
-    },
-    abrirAtendimentoExistente (contato, ticket) {
-      this.$q.dialog({
-        title: 'Atenção!!',
-        message: `${contato} possui um atendimento em curso (Atendimento: ${ticket.id}). Deseja abrir o atendimento?`,
-        cancel: {
-          label: 'Não',
-          color: 'primary',
-          push: true
-        },
-        ok: {
-          label: 'Sim',
-          color: 'negative',
-          push: true
-        },
-        persistent: true
-      }).onOk(async () => {
-        try {
-          this.abrirChatContato(ticket)
-        } catch (error) {
-          this.$notificarErro(
-            'Não foi possível atualizar o token',
-            error
-          )
-        }
-      })
     }
   },
   async mounted () {
     this.atualizarUsuario()
     await this.listarWhatsapps()
     await this.listarConfiguracoes()
-    await this.consultarTickets()
     if (!('Notification' in window)) {
     } else {
       Notification.requestPermission()
@@ -577,8 +437,3 @@ export default {
   }
 }
 </script>
-<style scoped>
-.q-img__image {
-  background-size: contain;
-}
-</style>

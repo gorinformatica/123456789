@@ -1,11 +1,9 @@
 <template>
   <div>
-    <q-card
-      bordered
+    <q-card bordered
       flat
       class="q-ma-sm"
-      style="border-bottom: 4px solid black"
-    >
+      style="border-bottom: 4px solid black">
       <q-card-section>
         <div class="row text-h6">
           Campanha: {{ $route.params.campanha.name }}
@@ -13,17 +11,14 @@
         <div class="row text-caption">
           Início: {{ formatDate($route.params.campanha.start) }} - Status: {{ $route.params.campanha.status }}
         </div>
-        <q-btn
-          class="absolute-top-right q-ma-md"
+        <q-btn class="absolute-top-right q-ma-md"
           icon="mdi-arrow-left"
           text-color="primary"
           label="Listar Campanhas"
-          @click="$router.push({ name: 'campanhas' })"
-        />
+          @click="$router.push({ name: 'campanhas' })" />
       </q-card-section>
     </q-card>
-    <q-table
-      class="my-sticky-dynamic q-ma-sm"
+    <q-table class="my-sticky-dynamic q-ma-sm"
       title="Contatos"
       id="tabela-contatos-campanha"
       :data="contatosCampanha"
@@ -32,63 +27,50 @@
       row-key="id"
       :pagination.sync="pagination"
       :rows-per-page-options="[0]"
-      separator="cell"
-    >
+      separator="cell">
       <template v-slot:top>
         <div class="row col-4 q-table__title items-center ">
           Contatos
-          <q-btn
-            class="q-ml-md"
+          <q-btn class="q-ml-md"
             color="primary"
             icon="refresh"
             outline
-            @click="listarContatosCampanha"
-          >
+            @click="listarContatosCampanha">
             <q-tooltip>
               Atualizar Listagem
             </q-tooltip>
           </q-btn>
         </div>
         <q-space />
-        <q-btn
-          class="q-ml-md"
+        <q-btn class="q-ml-md"
           color="negative"
           icon="close"
           outline
           label="Limpar Campanha"
           @click="deletarTodosContatosCampanha"
           v-if="$route.params.campanha.status === 'pending' ||
-            $route.params.campanha.status === 'canceled'"
-        />
-        <q-btn
-          class="q-ml-md"
+          $route.params.campanha.status === 'canceled'" />
+        <q-btn class="q-ml-md"
           color="primary"
           label="Incluir Contatos"
           icon="add"
           v-if="$route.params.campanha.status === 'pending' ||
-            $route.params.campanha.status === 'canceled'"
-          @click="modalAddContatosCampanha = !modalAddContatosCampanha"
-        />
+          $route.params.campanha.status === 'canceled'"
+          @click="modalAddContatosCampanha = !modalAddContatosCampanha" />
       </template>
       <template v-slot:body-cell-profilePicUrl="props">
         <q-td>
           <q-avatar style="border: 1px solid #9e9e9ea1 !important">
-            <q-icon
-              name="mdi-account"
+            <q-icon name="mdi-account"
               size="1.5em"
               color="grey-5"
-              v-if="!props.value"
-            />
-            <q-img
-              :src="props.value"
-              style="max-width: 150px"
-            >
+              v-if="!props.value" />
+            <q-img :src="props.value"
+              style="max-width: 150px">
               <template v-slot:error>
-                <q-icon
-                  name="mdi-account"
+                <q-icon name="mdi-account"
                   size="1.5em"
-                  color="grey-5"
-                />
+                  color="grey-5" />
               </template>
             </q-img>
           </q-avatar>
@@ -96,13 +78,11 @@
       </template>
       <template v-slot:body-cell-acoes="props">
         <q-td class="text-center">
-          <q-btn
-            v-if="$route.params.campanha.status === 'pending'"
+          <q-btn v-if="$route.params.campanha.status === 'pending'"
             flat
             round
             icon="mdi-delete"
-            @click="deletarContatoCampanha(props.row)"
-          />
+            @click="deletarContatoCampanha(props.row)" />
         </q-td>
       </template>
       <template v-slot:pagination="{ pagination }">
@@ -110,10 +90,8 @@
       </template>
     </q-table>
 
-    <q-dialog
-      persistent
-      v-model="modalAddContatosCampanha"
-    >
+    <q-dialog persistent
+      v-model="modalAddContatosCampanha">
       <q-card style="min-width: 80vw; width: 80vw">
         <q-card-section class="q-pt-none q-pt-md">
           <fieldset>
@@ -121,22 +99,18 @@
             <div class="row q-gutter-md items-end">
               <div class="col-grow">
                 <label>Início</label>
-                <DatePick
-                  dense
-                  v-model="pesquisa.startDate"
-                />
+                <DatePick dense
+                  v-model="pesquisa.startDate" />
               </div>
               <div class="col-grow">
                 <label>Final</label>
-                <DatePick
-                  dense
-                  v-model="pesquisa.endDate"
-                />
+                <DatePick dense
+                  v-model="pesquisa.endDate" />
               </div>
               <div class="col-xs-12 col-sm-4 grow text-center">
-                <q-select
-                  label="Estado (s)"
+                <q-select label="Estado (s)"
                   dense
+                  square
                   outlined
                   v-model="pesquisa.ddds"
                   multiple
@@ -146,38 +120,32 @@
                   option-label="nome"
                   emit-value
                   map-options
-                  dropdown-icon="add"
-                >
+                  dropdown-icon="add">
                   <template v-slot:option="{ itemProps, itemEvents, opt, selected, toggleOption }">
-                    <q-item
-                      v-bind="itemProps"
-                      v-on="itemEvents"
-                    >
+                    <q-item v-bind="itemProps"
+                      v-on="itemEvents">
                       <q-item-section>
                         <q-item-label v-html="opt.nome"></q-item-label>
                       </q-item-section>
                       <q-item-section side>
-                        <q-checkbox
-                          :value="selected"
-                          @input="toggleOption(opt)"
-                        />
+                        <q-checkbox :value="selected"
+                          @input="toggleOption(opt)" />
                       </q-item-section>
                     </q-item>
                   </template>
                   <template v-slot:selected-item="{ opt }">
-                    <q-badge
-                      dense
+                    <q-badge dense
+                      square
                       color="grey-3"
                       text-color="primary"
                       class="q-ma-xs text-body1"
-                      :label="opt.nome"
-                    >
+                      :label="opt.nome">
                     </q-badge>
                   </template>
                 </q-select>
               </div>
               <div class="col-xs-12 col-sm-4 grow text-center">
-                <q-select
+                <q-select square
                   outlined
                   label="Etiqueta (a)"
                   dense
@@ -189,104 +157,46 @@
                   option-label="tag"
                   emit-value
                   map-options
-                  dropdown-icon="add"
-                >
+                  dropdown-icon="add">
                   <template v-slot:option="{ itemProps, itemEvents, opt, selected, toggleOption }">
-                    <q-item
-                      v-bind="itemProps"
-                      v-on="itemEvents"
-                    >
+                    <q-item v-bind="itemProps"
+                      v-on="itemEvents">
                       <q-item-section>
                         <q-item-label v-html="opt.tag"></q-item-label>
                       </q-item-section>
                       <q-item-section side>
-                        <q-checkbox
-                          :value="selected"
-                          @input="toggleOption(opt)"
-                        />
+                        <q-checkbox :value="selected"
+                          @input="toggleOption(opt)" />
                       </q-item-section>
                     </q-item>
                   </template>
                   <template v-slot:selected-item="{ opt }">
-                    <q-chip
-                      dense
+                    <q-chip dense
+                      square
                       color="white"
                       text-color="primary"
-                      class="q-ma-xs text-body1"
-                    >
-                      <q-icon
-                        :style="`color: ${opt.color}`"
+                      class="q-ma-xs text-body1">
+                      <q-icon :style="`color: ${opt.color}`"
                         name="mdi-pound-box-outline"
                         size="28px"
-                        class="q-mr-sm"
-                      />
+                        class="q-mr-sm" />
                       {{ opt.tag }}
                     </q-chip>
                   </template>
                 </q-select>
               </div>
-              <div class="col-xs-12 col-sm-4 grow text-center">
-                <q-select
-                  outlined
-                  label="Carteira"
-                  dense
-                  v-model="pesquisa.wallets"
-                  multiple
-                  :options="usuarios"
-                  use-chips
-                  option-value="id"
-                  option-label="name"
-                  emit-value
-                  map-options
-                  dropdown-icon="add"
-                >
-                  <template v-slot:option="{ itemProps, itemEvents, opt, selected, toggleOption }">
-                    <q-item
-                      v-bind="itemProps"
-                      v-on="itemEvents"
-                    >
-                      <q-item-section>
-                        <q-item-label v-html="opt.name"></q-item-label>
-                      </q-item-section>
-                      <q-item-section side>
-                        <q-checkbox
-                          :value="selected"
-                          @input="toggleOption(opt)"
-                        />
-                      </q-item-section>
-                    </q-item>
-                  </template>
-                </q-select>
-              </div>
-              <div class="col-xs-12 col-sm-4 grow text-center">
-                <q-input
-                  style="width: 300px"
-                  outlined
-                  dense
-                  v-model="pesquisa.searchParam"
-                  clearable
-                  placeholder="Filtrar Nome ou Telefone"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="search" />
-                  </template>
-                </q-input>
-              </div>
               <div class="col-grow text-right">
-                <q-btn
-                  class="q-mr-sm"
+                <q-btn class="q-mr-sm"
                   color="info"
                   label="Gerar"
                   icon="refresh"
-                  @click="listarAddContatos"
-                />
+                  @click="listarAddContatos" />
               </div>
             </div>
           </fieldset>
         </q-card-section>
         <q-card-section>
-          <q-table
-            class="my-sticky-dynamic q-ma-sm"
+          <q-table class="my-sticky-dynamic q-ma-sm"
             style="height: 50vh"
             title="Contatos"
             id="tabela-contatos-campanha"
@@ -298,46 +208,35 @@
             :selected.sync="selected"
             :pagination.sync="pagination"
             :rows-per-page-options="[0]"
-            separator="cell"
-          >
+            separator="cell">
             <template v-slot:top>
               <div class="row col-4 q-table__title items-center ">
                 Selecionar Contatos
               </div>
               <q-space />
-              <q-btn
-                class="q-ml-md"
+              <q-btn class="q-ml-md"
                 color="negative"
                 label="Cancelar"
-                @click="modalAddContatosCampanha = false"
-              />
-              <q-btn
-                class="q-ml-md"
+                @click="modalAddContatosCampanha = false" />
+              <q-btn class="q-ml-md"
                 color="primary"
                 icon="save"
                 label="Adicionar"
-                @click="addContatosCampanha"
-              />
+                @click="addContatosCampanha" />
             </template>
             <template v-slot:body-cell-profilePicUrl="props">
               <q-td>
                 <q-avatar style="border: 1px solid #9e9e9ea1 !important">
-                  <q-icon
-                    name="mdi-account"
+                  <q-icon name="mdi-account"
                     size="1.5em"
                     color="grey-5"
-                    v-if="!props.value"
-                  />
-                  <q-img
-                    :src="props.value"
-                    style="max-width: 150px"
-                  >
+                    v-if="!props.value" />
+                  <q-img :src="props.value"
+                    style="max-width: 150px">
                     <template v-slot:error>
-                      <q-icon
-                        name="mdi-account"
+                      <q-icon name="mdi-account"
                         size="1.5em"
-                        color="grey-5"
-                      />
+                        color="grey-5" />
                     </template>
                   </q-img>
                 </q-avatar>
@@ -357,22 +256,17 @@ import { estadoPorDdd, estadosBR } from 'src/utils/constants'
 import { RelatorioContatos } from 'src/service/estatisticas'
 import { AdicionarContatosCampanha, DeletarTodosContatosCampanha, ListarContatosCampanha, DeletarContatoCampanha } from 'src/service/campanhas'
 import { format, parseISO, sub } from 'date-fns'
-import { ListarUsuarios } from 'src/service/user'
-
 export default {
   name: 'ContatosCampanha',
   data () {
     return {
       modalAddContatosCampanha: false,
       etiquetas: [],
-      usuarios: [],
       pesquisa: {
         startDate: format(sub(new Date(), { days: 30 }), 'yyyy-MM-dd'),
         endDate: format(new Date(), 'yyyy-MM-dd'),
         ddds: [],
-        tags: [],
-        wallets: [],
-        searchParam: ''
+        tags: []
       },
       estadoPorDdd,
       estadosBR,
@@ -489,15 +383,6 @@ export default {
         this.$notificarErro('Ocorreu um erro!', error)
       }
     },
-    async listarUsuarios () {
-      try {
-        const { data } = await ListarUsuarios()
-        this.usuarios = data.users
-      } catch (error) {
-        console.error(error)
-        this.$notificarErro('Problema ao carregar usuários', error)
-      }
-    },
     deletarContatoCampanha (contato) {
       DeletarContatoCampanha(this.$route.params.campanhaId, contato.id)
         .then(res => {
@@ -549,7 +434,6 @@ export default {
   },
   beforeMount () {
     this.listarEtiquetas()
-    this.listarUsuarios()
   },
   mounted () {
     const campanhaParams = this.$route.params.campanha

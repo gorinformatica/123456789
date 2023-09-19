@@ -7,8 +7,6 @@ const orderTickets = (tickets) => {
 }
 
 const getters = {
-  notifications: state => state.notifications.notifications,
-  notifications_p: state => state.notifications.notifications_p,
   tickets: state => orderTickets(state.atendimentoTicket.tickets),
   mensagensTicket: state => state.atendimentoTicket.mensagens,
   ticketFocado: state => state.atendimentoTicket.ticketFocado,

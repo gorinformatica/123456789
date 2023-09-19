@@ -23,24 +23,6 @@ export function CriarContato (data) {
   })
 }
 
-export function ImportarArquivoContato (data) {
-  return request({
-    url: '/contacts/upload',
-    method: 'post',
-    data,
-    timeout: 120000
-  })
-}
-
-export function ExportarArquivoContato (data) {
-  return request({
-    url: '/contacts/export',
-    method: 'post',
-    data,
-    timeout: 120000
-  })
-}
-
 export function SyncronizarContatos () {
   return request({
     url: '/contacts/sync',

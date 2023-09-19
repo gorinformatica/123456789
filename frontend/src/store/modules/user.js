@@ -1,8 +1,6 @@
 import { RealizarLogin } from '../../service/login'
 import { Notify, Dark } from 'quasar'
-import { sessaolog } from 'src/service/sessaolog'
 import { socketIO } from 'src/utils/socket'
-import { validaapi } from 'src/service/validaapi'
 
 const socket = socketIO()
 
@@ -27,7 +25,7 @@ const user = {
   },
   mutations: {
     SET_IS_SUPORTE (state, payload) {
-      const domains = ['@']
+      const domains = ['@izing.io']
       let authorized = false
       domains.forEach(domain => {
         if (payload?.email.toLocaleLowerCase().indexOf(domain.toLocaleLowerCase()) !== -1) {
@@ -41,10 +39,10 @@ const user = {
     }
   },
   actions: {
+
     async UserLogin ({ commit, dispatch }, user) {
       user.email = user.email.trim()
       try {
-        await sessaolog()
         const { data } = await RealizarLogin(user)
         localStorage.setItem('token', JSON.stringify(data.token))
         localStorage.setItem('username', data.username)
@@ -68,7 +66,6 @@ const user = {
 
         // chamada deve ser feita após inserir o token no localstorage
         // const { data: usuario } = await DadosUsuario(data.userId)
-        // validaapi()
         Notify.create({
           type: 'positive',
           message: 'Login realizado com sucesso!',
@@ -85,18 +82,8 @@ const user = {
             name: 'atendimento'
           })
         }
-        validaapi()
       } catch (error) {
-        console.error(error, error.data.error === 'ERROR_NO_PERMISSION_API_ADMIN')
-        if (error.data.error === 'ERROR_NO_PERMISSION_API_ADMIN') {
-          Notify.create({
-            type: 'negative',
-            message: 'Instalação não AUTORIZADA, entre em contato com Grupo Izing Pro - https://grupo.izing.app',
-            caption: 'ERROR_NO_PERMISSION_API_ADMIN',
-            position: 'top',
-            progress: true
-          })
-        }
+        console.error(error)
       }
     }
   }

@@ -27,7 +27,7 @@ const handlerError = err => {
     type: 'negative',
     html: true,
     progress: true,
-    message: `${JSON.stringify(error)}`
+    message: `Ops... <br>${JSON.stringify(error)}`
   })
 }
 
@@ -110,9 +110,9 @@ service.interceptors.response.use(
       handlerError(error)
     } else if (error.message.indexOf('timeout') > -1) {
       Notify.create({
-        message: 'Processando informações de estatisticas',
+        message: 'Esperamos muito tempo por uma resposta. Será que está tudo "Ok" com a internet?',
         position: 'top',
-        type: 'positive',
+        type: 'negative',
         progress: true,
         html: true
       })

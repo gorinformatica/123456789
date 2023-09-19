@@ -1,5 +1,5 @@
 <template>
-  <div style="width: 450px">
+  <div style="width: 600px">
     <div class="main">
       <div class="inner">
         <div class="top-bar">
@@ -26,7 +26,7 @@ export default {
 <style lang="scss">
 .main {
   width: 400px;
-  height: 450px;
+  height: 650px;
   background: #000000;
   padding: 30px;
   border-radius: 2em;
@@ -35,7 +35,7 @@ export default {
 .inner {
   border-radius: 20em;
   width: 390px;
-  height: 430px;
+  height: 630px;
   background: #fff;
   padding: 10px;
   margin-left: -25px;
@@ -64,7 +64,7 @@ export default {
   background: #eeecece1;
   background-size: cover;
   width: 380px;
-  height: 370px;
+  height: 570px;
   margin-top: 10px;
   margin-left: -5px;
   overflow: auto;

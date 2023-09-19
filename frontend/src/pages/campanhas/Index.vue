@@ -66,7 +66,6 @@
           <q-btn
             flat
             round
-            v-if="['pending', 'canceled'].includes(props.row.status)"
             icon="mdi-calendar-clock"
             @click="iniciarCampanha(props.row)"
           >
@@ -77,7 +76,6 @@
           <q-btn
             flat
             round
-            v-if="['scheduled', 'processing'].includes(props.row.status)"
             icon="mdi-close-box-multiple"
             @click="cancelarCampanha(props.row)"
           >
@@ -142,7 +140,7 @@ export default {
       columns: [
         { name: 'id', label: '#', field: 'id', align: 'left' },
         { name: 'name', label: 'Campanha', field: 'name', align: 'left' },
-        { name: 'start', label: 'Início', field: 'start', align: 'center', format: (v) => format(parseISO(v), 'dd/MM/yyyy HH:mm') },
+        { name: 'start', label: 'Início', field: 'start', align: 'center', format: (v) => format(parseISO(v), 'dd/MM/yyyy') },
         {
           name: 'status',
           label: 'Status',
@@ -175,9 +173,18 @@ export default {
       return startOfDay(new Date(parseISO(v))).getTime() >= startOfDay(new Date()).getTime()
     },
     campanhaCriada (campanha) {
+      // const newCampanhas = [...this.campanhas]
+      // newCampanhas.push(campanha)
+      // this.campanhas = [...newCampanhas]
       this.listarCampanhas()
     },
     campanhaEditada (campanha) {
+      // const newCampanhas = [...this.campanhas]
+      // const idx = newCampanhas.findIndex(f => f.id === campanha.id)
+      // if (idx > -1) {
+      //   newCampanhas[idx] = campanha
+      // }
+      // this.campanhas = [...newCampanhas]
       this.listarCampanhas()
     },
     editarCampanha (campanha) {
@@ -186,8 +193,8 @@ export default {
       }
       this.campanhaEdicao = {
         ...campanha,
-        start: campanha.start, // format(parseISO(campanha.start), 'yyyy-MM-dd'),
-        end: campanha.start // format(parseISO(campanha.start), 'yyyy-MM-dd')
+        start: format(parseISO(campanha.start), 'yyyy-MM-dd'),
+        end: format(parseISO(campanha.start), 'yyyy-MM-dd')
       }
       this.modalCampanha = true
     },

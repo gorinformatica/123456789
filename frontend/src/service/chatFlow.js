@@ -23,10 +23,3 @@ export function UpdateChatFlow (data) {
     data
   })
 }
-
-export function DeletarChatFlow (data) {
-  return request({
-    url: `/chat-flow/${data.id}`,
-    method: 'delete'
-  })
-}

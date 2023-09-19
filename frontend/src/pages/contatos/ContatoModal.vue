@@ -32,11 +32,11 @@
           v-model="contato.number"
           :validator="$v.contato.number"
           @blur="$v.contato.number.$touch"
-          mask="+#############"
-          placeholder="+DDI (DDD) 99999 9999"
+          mask="(##) ##### - ####"
+          placeholder="(DDD) 99999 - 9999"
           fill-mask
           unmasked-value
-          hint="Número do celular deverá conter 9 dígitos e ser precedido do DDI E DDD. "
+          hint="Número do celular deverá conter 9 dígitos e ser precedido do DDD. "
           label="Número"
         />
         <c-input
@@ -47,76 +47,6 @@
           v-model="contato.email"
           label="E-mail"
         />
-      </q-card-section>
-      <q-card-section>
-        <q-card
-          class="bg-white q-mt-sm btn-rounded"
-          style="width: 100%"
-          bordered
-          flat
-        >
-          <q-card-section class="text-bold q-pb-none">
-            Carteira
-            <q-separator />
-          </q-card-section>
-          <q-card-section class="q-pa-none">
-            <q-select
-              square
-              borderless
-              v-model="contato.wallets"
-              multiple
-              :max-values="1"
-              :options="usuarios"
-              use-chips
-              option-value="id"
-              option-label="name"
-              emit-value
-              map-options
-              dropdown-icon="add"
-            >
-              <template v-slot:option="{ itemProps, itemEvents, opt, selected, toggleOption }">
-                <q-item
-                  v-bind="itemProps"
-                  v-on="itemEvents"
-                >
-                  <q-item-section>
-                    <q-item-label v-html="opt.name"></q-item-label>
-                  </q-item-section>
-                  <q-item-section side>
-                    <q-checkbox
-                      :value="selected"
-                      @input="toggleOption(opt)"
-                    />
-                  </q-item-section>
-                </q-item>
-              </template>
-              <template v-slot:selected-item="{ opt }">
-                <q-chip
-                  dense
-                  square
-                  color="white"
-                  text-color="primary"
-                  class="q-ma-xs row col-12 text-body1"
-                >
-                  {{ opt.name }}
-                </q-chip>
-              </template>
-              <template v-slot:no-option="{ itemProps, itemEvents }">
-                <q-item
-                  v-bind="itemProps"
-                  v-on="itemEvents"
-                >
-                  <q-item-section>
-                    <q-item-label class="text-negative text-bold">
-                      Ops... Sem carteiras disponíveis!!
-                    </q-item-label>
-                  </q-item-section>
-                </q-item>
-              </template>
-
-            </q-select>
-          </q-card-section>
-        </q-card>
       </q-card-section>
       <q-card-section class="q-pa-sm q-pl-md text-bold">
         Informações adicionais
@@ -187,7 +117,6 @@
 <script>
 import { required, email, minLength, maxLength } from 'vuelidate/lib/validators'
 import { ObterContato, CriarContato, EditarContato } from 'src/service/contatos'
-import { ListarUsuarios } from 'src/service/user'
 export default {
   name: 'ContatoModal',
   props: {
@@ -206,10 +135,8 @@ export default {
         name: null,
         number: null,
         email: '',
-        extraInfo: [],
-        wallets: []
-      },
-      usuarios: []
+        extraInfo: []
+      }
     }
   },
   validations: {
@@ -221,13 +148,12 @@ export default {
   },
   methods: {
     async fetchContact () {
+      if (!this.contactId) return
       try {
-        await this.listarUsuarios()
-        if (!this.contactId) return
         const { data } = await ObterContato(this.contactId)
         this.contato = data
         if (data.number.substring(0, 2) === '55') {
-          this.contato.number = data.number.substring(0)
+          this.contato.number = data.number.substring(2)
         }
       } catch (error) {
         console.error(error)
@@ -257,7 +183,7 @@ export default {
 
       const contato = {
         ...this.contato,
-        number: '' + this.contato.number // inserir o DDI do brasil para consultar o número
+        number: '55' + this.contato.number // inserir o DDI do brasil para consultar o número
       }
 
       try {
@@ -295,15 +221,6 @@ export default {
       } catch (error) {
         console.error(error)
         this.$notificarErro('Ocorreu um erro ao criar o contato', error)
-      }
-    },
-    async listarUsuarios () {
-      try {
-        const { data } = await ListarUsuarios()
-        this.usuarios = data.users
-      } catch (error) {
-        console.error(error)
-        this.$notificarErro('Problema ao carregar usuários', error)
       }
     }
 

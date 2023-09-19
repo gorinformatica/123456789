@@ -96,8 +96,7 @@
                   borderBottomLeftRadius: 8px;
                   borderBottomRightRadius: 8px;
                 "
-            >
-          </video>
+          />
         </template>
         <template v-if="mensagem.mediaType === 'application'">
           <div class="text-center ">
