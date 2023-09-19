@@ -4,8 +4,8 @@ import Ticket from "../models/Ticket";
 import { getTbot } from "../libs/tbot";
 // import { getInstaBot } from "../libs/InstaBot";
 import GetWbotMessage from "./GetWbotMessage";
+import socketEmit from "./socketEmit";
 import AppError from "../errors/AppError";
-import { getIO } from "../libs/socket";
 
 const DeleteMessageSystem = async (
   id: string,
@@ -42,9 +42,6 @@ const DeleteMessageSystem = async (
 
   if (ticket.channel === "whatsapp") {
     const messageToDelete = await GetWbotMessage(ticket, messageId);
-    if (!messageToDelete) {
-      throw new AppError("ERROR_NOT_FOUND_MESSAGE");
-    }
     await messageToDelete.delete(true);
   }
 
@@ -72,17 +69,11 @@ const DeleteMessageSystem = async (
 
   await message.update({ isDeleted: true });
 
-  const io = getIO();
-  // .to(`tenant:${tenantId}:notification`)
-  io.to(`tenant:${tenantId}:${ticket.id}`).emit(
-    `tenant:${tenantId}:appMessage`,
-    {
-      action: "update",
-      message,
-      ticket,
-      contact: ticket.contact
-    }
-  );
+  socketEmit({
+    tenantId: ticket.tenantId,
+    type: "chat:delete",
+    payload: message
+  });
 };
 
 export default DeleteMessageSystem;

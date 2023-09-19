@@ -30,8 +30,8 @@ const ShowWhatsAppService = async ({
     "wabaBSP",
     "tokenAPI",
     "fbPageId",
-    "farewellMessage",
-    "chatFlowId"
+    "greetingMessage",
+    "farewellMessage"
   ];
   if (isInternal) {
     attr.push("instagramKey");

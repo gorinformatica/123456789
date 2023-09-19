@@ -21,7 +21,6 @@ import Ticket from "./Ticket";
 import Queue from "./Queue";
 import UsersQueues from "./UsersQueues";
 import Tenant from "./Tenant";
-import Contact from "./Contact";
 
 @Table
 class User extends Model<User> {
@@ -64,9 +63,6 @@ class User extends Model<User> {
 
   @BelongsToMany(() => Queue, () => UsersQueues, "userId", "queueId")
   queues: Queue[];
-
-  @BelongsToMany(() => Contact, () => Ticket, "userId", "contactId")
-  Contact: Contact[];
 
   @ForeignKey(() => Tenant)
   @Column

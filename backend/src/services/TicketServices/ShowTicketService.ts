@@ -29,10 +29,6 @@ const ShowTicketService = async ({
         model: User,
         as: "user",
         attributes: ["id", "name"]
-      },
-      {
-        association: "whatsapp",
-        attributes: ["id", "name"]
       }
     ]
   });

@@ -17,82 +17,74 @@ const SyncUnreadMessagesWbot = async (
   wbot: Session,
   tenantId: number | string
 ): Promise<void> => {
-  try {
-    const chats = await wbot.getChats();
-    await Promise.all(
-      chats.map(async chat => {
-        if (chat.unreadCount > 0) {
-          const unreadMessages = await chat.fetchMessages({
-            limit: chat.unreadCount
-          });
-          logger.info(`CHAT: ${chat}`);
+  const chats = await wbot.getChats();
+  await Promise.all(
+    chats.map(async chat => {
+      if (chat.unreadCount > 0) {
+        const unreadMessages = await chat.fetchMessages({
+          limit: chat.unreadCount
+        });
+        logger.info(`CHAT: ${chat}`);
 
-          if (chat.isGroup) {
-            return;
-          }
-          const chatContact = await chat.getContact();
-          const contact = await VerifyContact(chatContact, tenantId);
-          const ticket = await FindOrCreateTicketService({
-            contact,
-            whatsappId: wbot.id!,
-            unreadMessages: chat.unreadCount,
-            tenantId,
-            isSync: true,
-            channel: "whatsapp"
-          });
-
-          if (ticket?.isCampaignMessage) {
-            return;
-          }
-
-          if (ticket?.isFarewellMessage) {
-            return;
-          }
-
-          unreadMessages.map(async (msg, idx) => {
-            logger.info(`MSG: ${msg}`, msg.id?.id);
-            if (msg.hasMedia) {
-              await VerifyMediaMessage(msg, ticket, contact);
-            } else {
-              await VerifyMessage(msg, ticket, contact);
-            }
-            // enviar mensagem do bot na ultima mensagem
-            if (idx === unreadMessages.length - 1) {
-              // await verifyAutoReplyActionTicket(msg, ticket);
-              await VerifyStepsChatFlowTicket(msg, ticket);
-
-              const apiConfig: any = ticket.apiConfig || {};
-              if (
-                !msg.fromMe &&
-                !ticket.isGroup &&
-                !ticket.answered &&
-                apiConfig?.externalKey &&
-                apiConfig?.urlMessageStatus
-              ) {
-                const payload = {
-                  timestamp: Date.now(),
-                  msg,
-                  messageId: msg.id.id,
-                  ticketId: ticket.id,
-                  externalKey: apiConfig?.externalKey,
-                  authToken: apiConfig?.authToken,
-                  type: "hookMessage"
-                };
-                Queue.add("WebHooksAPI", {
-                  url: apiConfig.urlMessageStatus,
-                  type: payload.type,
-                  payload
-                });
-              }
-            }
-            // await verifyBusinessHours(msg, ticket);
-          });
+        if (chat.isGroup) {
+          return;
         }
-      })
-    );
-  } catch (error) {
-    logger.error("Erro ao syncronizar mensagens", error);
-  }
+        const chatContact = await chat.getContact();
+        const contact = await VerifyContact(chatContact, tenantId);
+        const ticket = await FindOrCreateTicketService({
+          contact,
+          whatsappId: wbot.id!,
+          unreadMessages: chat.unreadCount,
+          tenantId,
+          isSync: true,
+          channel: "whatsapp"
+        });
+
+        if (ticket?.isCampaignMessage) {
+          return;
+        }
+
+        unreadMessages.map(async (msg, idx) => {
+          logger.info(`MSG: ${msg}`);
+          if (msg.hasMedia) {
+            await VerifyMediaMessage(msg, ticket, contact);
+          } else {
+            await VerifyMessage(msg, ticket, contact);
+          }
+          // enviar mensagem do bot na ultima mensagem
+          if (idx === unreadMessages.length - 1) {
+            // await verifyAutoReplyActionTicket(msg, ticket);
+            await VerifyStepsChatFlowTicket(msg, ticket);
+
+            const apiConfig: any = ticket.apiConfig || {};
+            if (
+              !msg.fromMe &&
+              !ticket.isGroup &&
+              !ticket.answered &&
+              apiConfig?.externalKey &&
+              apiConfig?.urlMessageStatus
+            ) {
+              const payload = {
+                timestamp: Date.now(),
+                msg,
+                messageId: msg.id.id,
+                ticketId: ticket.id,
+                externalKey: apiConfig?.externalKey,
+                authToken: apiConfig?.authToken,
+                type: "hookMessage"
+              };
+              Queue.add("WebHooksAPI", {
+                url: apiConfig.urlMessageStatus,
+                type: payload.type,
+                payload
+              });
+            }
+          }
+          // await verifyBusinessHours(msg, ticket);
+        });
+      }
+    })
+  );
 };
 
 export default SyncUnreadMessagesWbot;

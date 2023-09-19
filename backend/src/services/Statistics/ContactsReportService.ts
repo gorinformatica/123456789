@@ -1,8 +1,8 @@
 import { endOfDay, parseISO, startOfDay } from "date-fns";
-import { Includeable, Op, Sequelize } from "sequelize";
+import { Includeable, Op } from "sequelize";
+
 import Contact from "../../models/Contact";
 import Tag from "../../models/Tag";
-import ContactWallet from "../../models/ContactWallet";
 
 const dddsPorEstado = [
   { estado: "AC", ddds: ["68"] },
@@ -42,11 +42,7 @@ interface Request {
   endDate: string;
   tenantId: string | number;
   tags?: number[] | string[];
-  wallets?: number[] | string[];
   ddds?: number[] | string[];
-  userId: number;
-  profile: string;
-  searchParam?: string;
 }
 
 interface Response {
@@ -58,33 +54,13 @@ const ListContactsService = async ({
   endDate,
   tenantId,
   tags,
-  wallets,
-  ddds,
-  userId,
-  profile,
-  searchParam
+  ddds
 }: Request): Promise<Response> => {
   let includeCondition: Includeable[] = [];
   let where: any = {
     tenantId,
     isGroup: false
   };
-
-  if (searchParam) {
-    where = {
-      ...where,
-      [Op.or]: [
-        {
-          name: Sequelize.where(
-            Sequelize.fn("LOWER", Sequelize.col("Contact.name")),
-            "LIKE",
-            `%${searchParam.toLowerCase().trim()}%`
-          )
-        },
-        { number: { [Op.like]: `%${searchParam.toLowerCase().trim()}%` } }
-      ]
-    };
-  }
 
   if (startDate && endDate) {
     where = {
@@ -111,26 +87,6 @@ const ListContactsService = async ({
         required: true
       }
     ];
-  }
-
-  if (wallets) {
-    includeCondition.push({
-      model: ContactWallet,
-      // as: "wallets",
-      where: {
-        walletId: wallets
-      },
-      required: true
-    });
-  } else if (profile !== "admin") {
-    includeCondition.push({
-      model: ContactWallet,
-      // as: "wallet",
-      where: {
-        walletId: userId
-      },
-      required: true
-    });
   }
 
   if (ddds) {

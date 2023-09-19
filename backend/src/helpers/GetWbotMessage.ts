@@ -6,9 +6,8 @@ import { logger } from "../utils/logger";
 
 export const GetWbotMessage = async (
   ticket: Ticket,
-  messageId: string,
-  totalMessages = 100
-): Promise<WbotMessage | undefined> => {
+  messageId: string
+): Promise<WbotMessage> => {
   const wbot = await GetTicketWbot(ticket);
 
   const wbotChat = await wbot.getChatById(
@@ -22,7 +21,7 @@ export const GetWbotMessage = async (
 
     const msgFound = chatMessages.find(msg => msg.id.id === messageId);
 
-    if (!msgFound && limit < totalMessages) {
+    if (!msgFound && limit < 100) {
       limit += 20;
       return fetchWbotMessagesGradually();
     }
@@ -34,10 +33,7 @@ export const GetWbotMessage = async (
     const msgFound = await fetchWbotMessagesGradually();
 
     if (!msgFound) {
-      console.error(
-        `Cannot found message within ${totalMessages} last messages`
-      );
-      return undefined;
+      throw new Error("Cannot found message within 100 last messages");
     }
 
     return msgFound;

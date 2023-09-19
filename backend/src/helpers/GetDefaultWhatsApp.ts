@@ -2,19 +2,10 @@ import AppError from "../errors/AppError";
 import Whatsapp from "../models/Whatsapp";
 
 const GetDefaultWhatsApp = async (
-  tenantId: string | number,
-  channelId?: number
+  tenantId: string | number
 ): Promise<Whatsapp> => {
-  const where: any = { tenantId, status: "CONNECTED" };
-
-  if (channelId) {
-    where.id = channelId;
-  } else {
-    where.type = "whatsapp";
-  }
-
   const defaultWhatsapp = await Whatsapp.findOne({
-    where
+    where: { tenantId, type: "whatsapp", status: "CONNECTED" }
   });
 
   if (!defaultWhatsapp || !tenantId) {

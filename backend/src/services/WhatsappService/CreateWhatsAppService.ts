@@ -1,7 +1,6 @@
 import AppError from "../../errors/AppError";
 import { getIO } from "../../libs/socket";
 import Whatsapp from "../../models/Whatsapp";
-import { logger } from "../../utils/logger";
 
 interface Request {
   name: string;
@@ -14,6 +13,7 @@ interface Request {
   wabaBSP?: string;
   tokenAPI?: string;
   fbPageId?: string;
+  greetingMessage?: string;
   farewellMessage?: string;
   type: "waba" | "instagram" | "telegram" | "whatsapp" | "messenger";
 }
@@ -34,8 +34,9 @@ const CreateWhatsAppService = async ({
   wabaBSP,
   tokenAPI,
   fbPageId,
-  farewellMessage,
-  isDefault = false
+  isDefault = false,
+  greetingMessage,
+  farewellMessage
 }: Request): Promise<Response> => {
   if (type === "waba" && (!tokenAPI || !wabaBSP)) {
     throw new AppError("WABA: favor informar o Token e a BSP");
@@ -65,32 +66,29 @@ const CreateWhatsAppService = async ({
     }
   }
 
-  try {
-    const whatsapp = await Whatsapp.create({
-      name,
-      status,
-      isDefault,
-      tenantId,
-      tokenTelegram,
-      instagramUser,
-      instagramKey,
-      type,
-      wabaBSP,
-      tokenAPI,
-      fbPageId,
-      farewellMessage
-    });
-    const io = getIO();
-    io.emit(`${tenantId}:whatsapp`, {
-      action: "update",
-      whatsapp
-    });
+  const whatsapp = await Whatsapp.create({
+    name,
+    status,
+    isDefault,
+    tenantId,
+    tokenTelegram,
+    instagramUser,
+    instagramKey,
+    type,
+    wabaBSP,
+    tokenAPI,
+    fbPageId,
+    greetingMessage,
+    farewellMessage
+  });
 
-    return { whatsapp, oldDefaultWhatsapp: whatsappFound };
-  } catch (error) {
-    logger.error(error);
-    throw new AppError("ERR_CREATE_WAPP", 404);
-  }
+  const io = getIO();
+  io.emit(`${tenantId}:whatsapp`, {
+    action: "update",
+    whatsapp
+  });
+
+  return { whatsapp, oldDefaultWhatsapp: whatsappFound };
 };
 
 export default CreateWhatsAppService;

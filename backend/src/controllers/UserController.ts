@@ -32,14 +32,8 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
 export const store = async (req: Request, res: Response): Promise<Response> => {
   const { tenantId } = req.user;
   const { email, password, name, profile } = req.body;
-  const { users } = await ListUsersService({ tenantId });
 
-  if (users.length >= Number(process.env.USER_LIMIT)) {
-          throw new AppError("ERR_USER_LIMIT_USER_CREATION", 400);
-  }
-
-  else if (
-    
+  if (
     req.url === "/signup" &&
     (await CheckSettingsHelper("userCreation")) === "disabled"
   ) {

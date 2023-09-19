@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import axios from "axios";
 import AppError from "../errors/AppError";
 
 import AuthUserService from "../services/UserServices/AuthUserSerice";
@@ -7,7 +6,6 @@ import { SendRefreshToken } from "../helpers/SendRefreshToken";
 import { RefreshTokenService } from "../services/AuthServices/RefreshTokenService";
 import { getIO } from "../libs/socket";
 import User from "../models/User";
-
 
 export const store = async (req: Request, res: Response): Promise<Response> => {
   const io = getIO();

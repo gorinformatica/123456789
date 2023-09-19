@@ -68,6 +68,4 @@ const AuthUserService = async ({
   };
 };
 
-export const BASE_URL = "https://auth.izing.app/?rest_route=/izingpro/v1/auth";
-
 export default AuthUserService;

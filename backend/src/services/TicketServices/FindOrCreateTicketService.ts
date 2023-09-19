@@ -10,8 +10,6 @@ import socketEmit from "../../helpers/socketEmit";
 // import CheckChatBotWelcome from "../../helpers/CheckChatBotWelcome";
 import CheckChatBotFlowWelcome from "../../helpers/CheckChatBotFlowWelcome";
 import CreateLogTicketService from "./CreateLogTicketService";
-import MessageModel from "../../models/Message";
-import ListSettingsService from "../SettingServices/ListSettingsService";
 
 interface Data {
   contact: Contact;
@@ -47,22 +45,6 @@ const FindOrCreateTicketService = async ({
     }
   }
 
-  if (msg && msg.fromMe) {
-    const farewellMessage = await MessageModel.findOne({
-      where: { messageId: msg.id?.id || msg.message_id || msg.item_id },
-      include: ["ticket"]
-    });
-
-    if (
-      farewellMessage?.ticket?.status === "closed" &&
-      farewellMessage?.ticket.lastMessage === msg.body
-    ) {
-      const ticket = farewellMessage.ticket as any;
-      ticket.isFarewellMessage = true;
-      return ticket;
-    }
-  }
-
   let ticket = await Ticket.findOne({
     where: {
       status: {
@@ -89,10 +71,6 @@ const FindOrCreateTicketService = async ({
         model: User,
         as: "user",
         attributes: ["id", "name"]
-      },
-      {
-        association: "whatsapp",
-        attributes: ["id", "name"]
       }
     ]
   });
@@ -100,7 +78,7 @@ const FindOrCreateTicketService = async ({
   if (ticket) {
     unreadMessages =
       ["telegram", "waba", "instagram", "messenger"].includes(channel) &&
-      unreadMessages > 0
+        unreadMessages > 0
         ? (unreadMessages += ticket.unreadMessages)
         : unreadMessages;
     await ticket.update({ unreadMessages });
@@ -136,10 +114,6 @@ const FindOrCreateTicketService = async ({
         {
           model: User,
           as: "user",
-          attributes: ["id", "name"]
-        },
-        {
-          association: "whatsapp",
           attributes: ["id", "name"]
         }
       ]
@@ -191,10 +165,6 @@ const FindOrCreateTicketService = async ({
           model: User,
           as: "user",
           attributes: ["id", "name"]
-        },
-        {
-          association: "whatsapp",
-          attributes: ["id", "name"]
         }
       ]
     });
@@ -216,12 +186,7 @@ const FindOrCreateTicketService = async ({
     }
   }
 
-  const DirectTicketsToWallets =
-    (await ListSettingsService(tenantId))?.find(
-      s => s.key === "DirectTicketsToWallets"
-    )?.value === "enabled" || false;
-
-  const ticketObj: any = {
+  const ticketCreated = await Ticket.create({
     contactId: groupContact ? groupContact.id : contact.id,
     status: "pending",
     isGroup: !!groupContact,
@@ -229,26 +194,14 @@ const FindOrCreateTicketService = async ({
     whatsappId,
     tenantId,
     channel
-  };
-
-  if (DirectTicketsToWallets && contact.id) {
-    const wallet: any = contact;
-    const wallets = await wallet.getWallets();
-    if (wallets && wallets[0]?.id) {
-      ticketObj.status = "open";
-      ticketObj.userId = wallets[0].id;
-      ticketObj.startedAttendanceAt = new Date().getTime();
-    }
-  }
-
-  const ticketCreated = await Ticket.create(ticketObj);
+  });
 
   await CreateLogTicketService({
     ticketId: ticketCreated.id,
     type: "create"
   });
 
-  if ((msg && !msg.fromMe) || !ticketCreated.userId || isSync) {
+  if ((msg && !msg.fromMe) || isSync) {
     await CheckChatBotFlowWelcome(ticketCreated);
   }
 

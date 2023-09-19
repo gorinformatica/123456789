@@ -13,7 +13,6 @@ interface Request {
   userId: number;
   tenantId: string | number;
   channel: string;
-  channelId?: number;
 }
 
 const CreateTicketService = async ({
@@ -21,10 +20,9 @@ const CreateTicketService = async ({
   status,
   userId,
   tenantId,
-  channel,
-  channelId = undefined
+  channel
 }: Request): Promise<Ticket> => {
-  const defaultWhatsapp = await GetDefaultWhatsApp(tenantId, channelId);
+  const defaultWhatsapp = await GetDefaultWhatsApp(tenantId);
 
   if (!channel || !["instagram", "telegram", "whatsapp"].includes(channel)) {
     throw new AppError("ERR_CREATING_TICKET");

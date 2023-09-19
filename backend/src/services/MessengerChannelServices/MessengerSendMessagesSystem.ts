@@ -13,6 +13,7 @@ import Message from "../../models/Message";
 import Ticket from "../../models/Ticket";
 import { logger } from "../../utils/logger";
 import { sleepRandomTime } from "../../utils/sleepRandomTime";
+import { generateMessage } from "../../utils/mustache";
 // import { sleepRandomTime } from "../../utils/sleepRandomTime";
 // import SetTicketMessagesAsRead from "../../helpers/SetTicketMessagesAsRead";
 
@@ -46,15 +47,7 @@ const MessengerSendMessagesSystem = async (
       {
         model: Ticket,
         as: "ticket",
-        where: {
-          tenantId,
-          [Op.or]: {
-            status: { [Op.ne]: "closed" },
-            isFarewellMessage: true
-          },
-          channel: "messenger",
-          whatsappId: messengerBot.id
-        },
+        where: { tenantId, channel: "messenger", whatsappId: messengerBot.id },
         include: ["contact"]
       },
       {
@@ -121,7 +114,7 @@ const MessengerSendMessagesSystem = async (
         }
       }
       if (["chat", "text"].includes(message.mediaType) && !message.mediaName) {
-        sendedMessage = await messengerBot.sendText(chatId, message.body);
+        sendedMessage = await messengerBot.sendText(chatId, generateMessage(message.body, message.ticket));
       }
 
       // enviar old_id para substituir no front a mensagem corretamente
@@ -159,8 +152,8 @@ const MessengerSendMessagesSystem = async (
 
       // delay para processamento da mensagem
       await sleepRandomTime({
-        minMilliseconds: Number(500),
-        maxMilliseconds: Number(1500)
+        minMilliseconds: Number(2000),
+        maxMilliseconds: Number(3000)
       });
 
       // logger.info("sendMessage", sendedMessage.id.id);

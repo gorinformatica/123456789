@@ -33,12 +33,7 @@ const CancelCampaignService = async ({
         ack: 0,
         messageId: null
       },
-      {
-        where: {
-          campaignId: campaign.id,
-          messageId: null
-        }
-      }
+      { where: { campaignId: campaign.id } }
     );
 
     await campaign.update({

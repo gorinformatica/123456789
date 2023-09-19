@@ -8,6 +8,7 @@ import socketEmit from "../../helpers/socketEmit";
 import Message from "../../models/Message";
 import Ticket from "../../models/Ticket";
 import { logger } from "../../utils/logger";
+import { generateMessage } from "../../utils/mustache";
 // import { sleepRandomTime } from "../../utils/sleepRandomTime";
 // import SetTicketMessagesAsRead from "../../helpers/SetTicketMessagesAsRead";
 
@@ -41,15 +42,7 @@ const SendMessagesSystemWbot = async (
       {
         model: Ticket,
         as: "ticket",
-        where: {
-          tenantId,
-          [Op.or]: {
-            status: { [Op.ne]: "closed" },
-            isFarewellMessage: true
-          },
-          channel: "telegram",
-          whatsappId: tbot.id
-        },
+        where: { tenantId, channel: "telegram", whatsappId: tbot.id },
         include: ["contact"]
       },
       {
@@ -118,7 +111,7 @@ const SendMessagesSystemWbot = async (
       } else {
         sendedMessage = await tbot.telegram.sendMessage(
           chatId,
-          message.body,
+          generateMessage(message.body, ticket),
           extraInfo
         );
         logger.info("sendMessage text");

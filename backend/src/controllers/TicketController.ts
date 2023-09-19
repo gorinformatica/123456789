@@ -3,7 +3,9 @@ import { Op } from "sequelize";
 // import GetWbotMessage from "../helpers/GetWbotMessage";
 import { getIO } from "../libs/socket";
 import Message from "../models/Message";
+import Whatsapp from "../models/Whatsapp";
 import CreateLogTicketService from "../services/TicketServices/CreateLogTicketService";
+import { generateMessage } from "../utils/mustache";
 
 import CreateTicketService from "../services/TicketServices/CreateTicketService";
 import DeleteTicketService from "../services/TicketServices/DeleteTicketService";
@@ -11,10 +13,7 @@ import ListTicketsService from "../services/TicketServices/ListTicketsService";
 import ShowLogTicketService from "../services/TicketServices/ShowLogTicketService";
 import ShowTicketService from "../services/TicketServices/ShowTicketService";
 import UpdateTicketService from "../services/TicketServices/UpdateTicketService";
-import Whatsapp from "../models/Whatsapp";
-import AppError from "../errors/AppError";
-import CreateMessageSystemService from "../services/MessageServices/CreateMessageSystemService";
-import { pupa } from "../utils/pupa";
+import SendWhatsAppMessage from "../services/WbotServices/SendWhatsAppMessage";
 
 type IndexQuery = {
   searchParam: string;
@@ -35,7 +34,6 @@ interface TicketData {
   isActiveDemand: boolean;
   tenantId: string | number;
   channel: string;
-  channelId?: number;
 }
 
 export const index = async (req: Request, res: Response): Promise<Response> => {
@@ -74,16 +72,14 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
 
 export const store = async (req: Request, res: Response): Promise<Response> => {
   const { tenantId } = req.user;
-  const { contactId, status, userId, channel, channelId }: TicketData =
-    req.body;
+  const { contactId, status, userId, channel }: TicketData = req.body;
 
   const ticket = await CreateTicketService({
     contactId,
     status,
     userId,
     tenantId,
-    channel,
-    channelId
+    channel
   });
 
   // se ticket criado pelo próprio usuário, não emitir socket.
@@ -160,30 +156,16 @@ export const update = async (
     isTransference,
     userIdRequest
   });
-
+  
+  //enviar mensagem de despedida ao encerrar atendimento
   if (ticket.status === "closed") {
-    const whatsapp = await Whatsapp.findOne({
-      where: { id: ticket.whatsappId, tenantId }
-    });
-    if (whatsapp?.farewellMessage) {
-      const body = pupa(whatsapp.farewellMessage || "", {
-        protocol: ticket.protocol,
-        name: ticket.contact.name
-      });
-      const messageData = {
-        msg: { body, fromMe: true, read: true },
-        tenantId,
-        ticket,
-        userId: req.user.id,
-        sendType: "bot",
-        status: "pending",
-        isTransfer: false,
-        note: false
-      };
-      await CreateMessageSystemService(messageData);
-      ticket.update({ isFarewellMessage: true });
+	const whatsapp = await Whatsapp.findOne({
+		where: { id: ticket.whatsappId, tenantId }
+	});	
+	if(whatsapp?.farewellMessage){
+        await SendWhatsAppMessage({body: generateMessage(`${whatsapp?.farewellMessage}`, ticket), ticket});    
     }
-  }
+  };
 
   return res.status(200).json(ticket);
 };

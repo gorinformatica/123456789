@@ -1,20 +1,14 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-await-in-loop */
 import { join } from "path";
-import {
-  Message as WbotMessage,
-  Buttons,
-  Client,
-  List,
-  MessageMedia
-} from "whatsapp-web.js";
+import { Buttons, Client, List, MessageMedia } from "whatsapp-web.js";
 import { Op } from "sequelize";
 import Message from "../../models/Message";
 import Ticket from "../../models/Ticket";
 import { logger } from "../../utils/logger";
 import { sleepRandomTime } from "../../utils/sleepRandomTime";
 import Contact from "../../models/Contact";
-import GetWbotMessage from "../../helpers/GetWbotMessage";
+import { generateMessage } from "../../utils/mustache";
 // import SetTicketMessagesAsRead from "../../helpers/SetTicketMessagesAsRead";
 
 interface Session extends Client {
@@ -58,10 +52,7 @@ const SendMessagesSystemWbot = async (
         as: "ticket",
         where: {
           tenantId,
-          [Op.or]: {
-            status: { [Op.ne]: "closed" },
-            isFarewellMessage: true
-          },
+          status: { [Op.ne]: "closed" },
           channel: "whatsapp",
           whatsappId: wbot.id
         },
@@ -89,17 +80,7 @@ const SendMessagesSystemWbot = async (
     const chatId = `${contactNumber}@${typeGroup}.us`;
 
     if (message.quotedMsg) {
-      const inCache: WbotMessage | undefined = await GetWbotMessage(
-        ticket,
-        message.quotedMsg.messageId,
-        200
-      );
-      if (inCache) {
-        quotedMsgSerializedId = inCache?.id?._serialized || undefined;
-      } else {
-        quotedMsgSerializedId = undefined;
-      }
-      // eslint-disable-next-line no-underscore-dangle
+      quotedMsgSerializedId = `${message.quotedMsg.fromMe}_${contactNumber}@${typeGroup}.us_${message.quotedMsg.messageId}`;
     }
 
     try {
@@ -114,10 +95,14 @@ const SendMessagesSystemWbot = async (
         });
         logger.info("sendMessage media");
       } else {
-        sendedMessage = await wbot.sendMessage(chatId, message.body, {
-          quotedMessageId: quotedMsgSerializedId,
-          linkPreview: false // fix: send a message takes 2 seconds when there's a link on message body
-        });
+        sendedMessage = await wbot.sendMessage(
+          chatId,
+          generateMessage(message.body, ticket),
+          {
+            quotedMessageId: quotedMsgSerializedId,
+            linkPreview: false // fix: send a message takes 2 seconds when there's a link on message body
+          }
+        );
         logger.info("sendMessage text");
       }
 

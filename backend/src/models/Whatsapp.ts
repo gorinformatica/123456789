@@ -27,7 +27,6 @@ import Queue from "../libs/Queue";
 import ApiConfig from "./ApiConfig";
 import Tenant from "./Tenant";
 import Ticket from "./Ticket";
-import ChatFlow from "./ChatFlow";
 
 // @DefaultScope(() => ({
 //   where: { isDeleted: false }
@@ -128,13 +127,6 @@ class Whatsapp extends Model<Whatsapp> {
   @BelongsTo(() => Tenant)
   tenant: Tenant;
 
-  @ForeignKey(() => ChatFlow)
-  @Column
-  chatFlowId: number;
-
-  @BelongsTo(() => ChatFlow)
-  chatFlow: ChatFlow;
-
   @Default(null)
   @AllowNull
   @Column(DataType.ENUM("360", "gupshup"))
@@ -149,9 +141,10 @@ class Whatsapp extends Model<Whatsapp> {
   @AllowNull
   @Column(DataType.TEXT)
   tokenHook: string;
-
-  @Default(null)
-  @AllowNull
+  
+  @Column(DataType.TEXT)
+  greetingMessage: string;
+  
   @Column(DataType.TEXT)
   farewellMessage: string;
 

@@ -1,11 +1,15 @@
 /* eslint-disable no-return-assign */
 import { Message as WbotMessage } from "whatsapp-web.js";
 import socketEmit from "../../helpers/socketEmit";
+// import SetTicketMessagesAsRead from "../../../helpers/SetTicketMessagesAsRead";
 import Ticket from "../../models/Ticket";
+// import { sleepRandomTime } from "../../../utils/sleepRandomTime";
+// import CreateAutoReplyLogsService from "../AutoReplyServices/CreateAutoReplyLogsService";
 import CreateMessageSystemService from "../MessageServices/CreateMessageSystemService";
 import CreateLogTicketService from "../TicketServices/CreateLogTicketService";
 import BuildSendMessageService from "./BuildSendMessageService";
 import DefinedUserBotService from "./DefinedUserBotService";
+// import SendWhatsAppMessage from "../SendWhatsAppMessage";
 import IsContactTest from "./IsContactTest";
 
 const isNextSteps = async (
@@ -65,20 +69,13 @@ const isQueueDefine = async (
     });
 
     if (flowConfig?.configurations?.autoDistributeTickets) {
-      await DefinedUserBotService(
+      DefinedUserBotService(
         ticket,
         stepCondition.queueId,
         ticket.tenantId,
         flowConfig?.configurations?.autoDistributeTickets
       );
-      ticket.reload();
     }
-
-    socketEmit({
-      tenantId: ticket.tenantId,
-      type: "ticket:update",
-      payload: ticket
-    });
   }
 };
 
@@ -96,14 +93,6 @@ const isUserDefine = async (
       stepChatFlow: null,
       botRetries: 0,
       lastInteractionBot: new Date()
-    });
-
-    ticket.reload();
-
-    socketEmit({
-      tenantId: ticket.tenantId,
-      type: "ticket:update",
-      payload: ticket
     });
 
     await CreateLogTicketService({
@@ -173,12 +162,13 @@ const isRetriesLimit = async (
     }
 
     ticket.update(updatedValues);
+    await CreateLogTicketService(logsRetry);
+
     socketEmit({
       tenantId: ticket.tenantId,
       type: "ticket:update",
       payload: ticket
     });
-    await CreateLogTicketService(logsRetry);
 
     // enviar mensagem de boas vindas à fila ou usuário
     await sendWelcomeMessage(ticket, flowConfig);
@@ -265,7 +255,6 @@ const VerifyStepsChatFlowTicket = async (
 
       // verificar condição com a ação do step
       const stepCondition = step.conditions.find((conditions: any) => {
-        if (conditions.type === "US") return true;
         const newConditions = conditions.condition.map((c: any) =>
           String(c).toLowerCase().trim()
         );

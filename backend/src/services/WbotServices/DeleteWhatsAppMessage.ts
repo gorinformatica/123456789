@@ -3,7 +3,7 @@ import GetWbotMessage from "../../helpers/GetWbotMessage";
 import Message from "../../models/Message";
 import Ticket from "../../models/Ticket";
 import { StartWhatsAppSessionVerify } from "./StartWhatsAppSessionVerify";
-import { getIO } from "../../libs/socket";
+import socketEmit from "../../helpers/socketEmit";
 
 const DeleteWhatsAppMessage = async (
   id: string,
@@ -29,17 +29,11 @@ const DeleteWhatsAppMessage = async (
       ]
     });
     if (message) {
-      const io = getIO();
-      // .to(`tenant:${tenantId}:notification`)
-      io.to(`tenant:${tenantId}:${message.ticket.id}`).emit(
-        `tenant:${tenantId}:appMessage`,
-        {
-          action: "update",
-          message,
-          ticket: message.ticket,
-          contact: message.ticket.contact
-        }
-      );
+      socketEmit({
+        tenantId,
+        type: "chat:delete",
+        payload: message
+      });
     }
     return;
   }
@@ -64,27 +58,19 @@ const DeleteWhatsAppMessage = async (
   const messageToDelete = await GetWbotMessage(ticket, messageId);
 
   try {
-    if (!messageToDelete) {
-      throw new AppError("ERROR_NOT_FOUND_MESSAGE");
-    }
     await messageToDelete.delete(true);
   } catch (err) {
-    // StartWhatsAppSessionVerify(ticket.whatsappId, err);
+    StartWhatsAppSessionVerify(ticket.whatsappId, err);
     throw new AppError("ERR_DELETE_WAPP_MSG");
   }
 
   await message.update({ isDeleted: true });
 
-  const io = getIO();
-  // .to(`tenant:${tenantId}:notification`)
-  io.to(`tenant:${tenantId}:${message.ticket.id}`).emit(
-    `tenant:${tenantId}:appMessage`,
-    {
-      action: "update",
-      message,
-      contact: ticket.contact
-    }
-  );
+  socketEmit({
+    tenantId: ticket.tenantId,
+    type: "chat:delete",
+    payload: message
+  });
 };
 
 export default DeleteWhatsAppMessage;

@@ -36,10 +36,6 @@ const TicketsQueuesService = async ({
       attributes: ["id", "name", "number", "profilePicUrl"]
     },
     {
-      association: "whatsapp",
-      attributes: ["id", "name"]
-    },
-    {
       model: User,
       as: "user",
       attributes: ["id", "name", "profile"]

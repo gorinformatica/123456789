@@ -1,5 +1,8 @@
-import { pupa } from "../../utils/pupa";
+// import { writeFile } from "fs";
+// import { promisify } from "util";
+// import { join } from "path";
 import { logger } from "../../utils/logger";
+// import MessageOffLine from "../../models/MessageOffLine";
 import Ticket from "../../models/Ticket";
 import Message from "../../models/Message";
 import socketEmit from "../../helpers/socketEmit";
@@ -123,13 +126,6 @@ const BuildSendMessageService = async ({
         payload: messageCreated
       });
     } else {
-      // Alter template message
-      msg.data.message = pupa(msg.data.message || "", {
-        // greeting: será considerado conforme data/hora da mensagem internamente na função pupa
-        protocol: ticket.protocol,
-        name: ticket.contact.name
-      });
-
       const msgCreated = await Message.create({
         ...messageData,
         body: msg.data.message,
